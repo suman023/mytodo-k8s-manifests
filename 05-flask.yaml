@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  namespace: mytodo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      initContainers:
+      # MySQL ready hone ka wait karo
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command: ['sh', '-c',
+          'until nc -z mysql-service 3306; do echo waiting for mysql; sleep 3; done']
+      containers:
+      - name: flask-app
+        image: suman2304/mytodo:latest   # Jenkins yahan BUILD_NUMBER daalta hai
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-service"
+        - name: MYSQL_DB
+          value: "tododb"
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+  namespace: mytodo
+spec:
+  type: NodePort
+  selector:
+    app: flask-app
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30080

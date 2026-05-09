@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mytodo
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/suman023/mytodo-k8s-manifests   # <-- apna repo URL
+    targetRevision: main
+    path: .
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mytodo
+
+  syncPolicy:
+    automated:
+      prune: true       # Agar YAML se koi resource hata to K8s se bhi hatao
+      selfHeal: true    # Agar koi manually kubectl se change kare to revert karo
+    syncOptions:
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true
