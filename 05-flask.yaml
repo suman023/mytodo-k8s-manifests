@@ -21,7 +21,7 @@ spec:
           'until nc -z mysql-service 3306; do echo waiting for mysql; sleep 3; done']
       containers:
       - name: flask-app
-        image: suman2304/mytodo:v6
+        image: suman2304/mytodo:v7
         ports:
         - containerPort: 5000
         env:
