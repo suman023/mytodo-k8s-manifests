@@ -17,8 +17,8 @@ spec:
 
   syncPolicy:
     automated:
-      prune: true       # Agar YAML se koi resource hata to K8s se bhi hatao
-      selfHeal: true    # Agar koi manually kubectl se change kare to revert karo
+      prune: true       
+      selfHeal: true    
     syncOptions:
     - CreateNamespace=true
     - ApplyOutOfSyncOnly=true
